@@ -23,7 +23,7 @@ build-tests: configure-with-tests
     cmake --build build --parallel
 
 # Запуск тестов
-test: build
+test: build-tests
     ctest --test-dir build --output-on-failure
 
 # Удаление build-каталога
