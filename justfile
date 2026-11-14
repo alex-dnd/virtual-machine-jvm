@@ -26,6 +26,10 @@ build-tests: configure-with-tests
 test: build-tests
     ctest --test-dir build --output-on-failure
 
+# Запуск сантиайзеров
+sanitize: build-sanitizers
+    ctest --test-dir build --output-on-failure
+
 # Удаление build-каталога
 clean:
     rm -rf build
