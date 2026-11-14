@@ -102,6 +102,8 @@ private:
     // TextLiteral с TextValue. false при ошибке.
     bool scan_text_literal();
 
+    bool scan_quoted(char quote, SourcePosition begin, std::string &out);
+
     // Текущий байт — '\\' внутри литерала. Разбирает escape и дописывает
     // получившийся символ в out. false при ошибке.
     bool decode_escape(std::string &out);
