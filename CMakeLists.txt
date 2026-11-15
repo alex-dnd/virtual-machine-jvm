@@ -1,15 +1,5 @@
 # ============================================================================
 # egg_lexer — библиотека лексера и её тесты
-#
-# Сборка:
-#   cmake -S . -B build
-#   cmake --build build
-#
-# Запуск тестов:
-#   ctest --test-dir build --output-on-failure
-#
-# Сборка с санитайзерами (AddressSanitizer + UndefinedBehaviorSanitizer):
-#   cmake -S . -B build -DEGG_SANITIZE=ON
 # ============================================================================
 
 cmake_minimum_required(VERSION 3.20)
@@ -40,7 +30,13 @@ option(EGG_SANITIZE "Build with AddressSanitizer and UBSan" OFF)
 # Библиотека egg_lexer
 # ----------------------------------------------------------------------------
 
-add_library(egg_lexer src/lexer.cpp)
+add_library(egg_lexer
+  src/lexer/lexer.cpp
+  src/lexer/scanner.cpp
+  src/lexer/trivia.cpp
+  src/lexer/tokens.cpp
+  src/lexer/literals.cpp
+)
 
 # Заголовки из include/ доступны и самой библиотеке, и тем, кто её использует.
 target_include_directories(egg_lexer PUBLIC include)
@@ -90,10 +86,7 @@ if(EGG_SANITIZE AND NOT MSVC)
 endif()
 
 # ----------------------------------------------------------------------------
-# Тесты
-#
-# Тесты собираются только если включена поддержка CTest:
-#   cmake -S . -B build -DBUILD_TESTING=ON
+# Тесты. Тесты собираются только если включена поддержка CTest
 # ----------------------------------------------------------------------------
 
 include(CTest)
