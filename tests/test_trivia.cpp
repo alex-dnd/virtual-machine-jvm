@@ -3,12 +3,6 @@
 
 using egg::TokenKind;
 
-TEST_CASE("trivia placeholder", "[trivia]") {
-    auto r = test::lex("");
-    REQUIRE_FALSE(r.error.has_value());
-    REQUIRE(test::kinds(r) == std::vector<TokenKind>{TokenKind::EndOfFile});
-}
-
 TEST_CASE("пустой файл: один EOF в позиции 1:1", "[trivia]") {
     auto r = test::lex("");
     REQUIRE_FALSE(r.error.has_value());

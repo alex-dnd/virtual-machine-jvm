@@ -149,3 +149,62 @@ TEST_CASE("BOM и неверный UTF-8 внутри литерала", "[liter
     REQUIRE(invalid.error.has_value());
     CHECK(invalid.error->code == LexErrorCode::InvalidUtf8);
 }
+
+TEST_CASE("Недопустимые символы диагностируются и внутри escape", "[literals]") {
+    struct Case {
+        std::string bytes;
+        LexErrorCode code;
+    };
+    const std::vector<Case> cases = {
+        {"\n", LexErrorCode::NewlineInLiteral},
+        {"\r", LexErrorCode::NewlineInLiteral},
+        {"\r\n", LexErrorCode::NewlineInLiteral},
+        {"\xEF\xBB\xBF", LexErrorCode::UnexpectedBom},
+        {"\xFF", LexErrorCode::InvalidUtf8},
+        {"\xC3", LexErrorCode::InvalidUtf8},
+        {"\xD0\xAF", LexErrorCode::NonAsciiInLiteral},
+        {std::string(1, '\0'), LexErrorCode::NonPrintableInLiteral},
+        {"\x7F", LexErrorCode::NonPrintableInLiteral}
+    };
+
+    for (char quote : {'\'', '"'}) {
+        for (const std::string prefix : {"", "\\", "\\x", "\\x4"}) {
+            for (const auto& tc : cases) {
+                INFO("quote=" << quote << ", prefix=" << prefix
+                     << ", code=" << static_cast<int>(tc.code));
+                const std::string before = "int " + std::string(1, quote) + prefix;
+                auto r = test::lex(before + tc.bytes + quote);
+                REQUIRE(r.error.has_value());
+                CHECK(r.error->code == tc.code);
+                CHECK(r.error->range.begin.byte_offset == before.size());
+                const auto length = (tc.code == LexErrorCode::UnexpectedBom ||
+                                     tc.code == LexErrorCode::NonAsciiInLiteral)
+                                        ? tc.bytes.size() : 1;
+                CHECK(r.error->range.end.byte_offset == before.size() + length);
+                CHECK(r.error->range.begin.line == 1);
+                CHECK(r.error->range.end.line == 1);
+                CHECK(r.error->range.begin.column == before.size() + 1);
+                CHECK(r.error->range.end.column == before.size() + 2);
+                REQUIRE(r.tokens.size() == 1);
+                CHECK(r.tokens[0].kind == TokenKind::KwInt);
+            }
+        }
+    }
+}
+
+TEST_CASE("Оборванные и неизвестные escape сохраняют свои коды ошибок", "[literals]") {
+    for (char quote : {'\'', '"'}) {
+        for (const std::string suffix : {"\\", "\\q"}) {
+            auto r = test::lex(std::string(1, quote) + suffix);
+            REQUIRE(r.error.has_value());
+            CHECK(r.error->code == LexErrorCode::InvalidEscape);
+            CHECK(r.tokens.empty());
+        }
+        for (const std::string suffix : {"\\x", "\\x4", "\\xG1", "\\x4G"}) {
+            auto r = test::lex(std::string(1, quote) + suffix);
+            REQUIRE(r.error.has_value());
+            CHECK(r.error->code == LexErrorCode::InvalidHexEscape);
+            CHECK(r.tokens.empty());
+        }
+    }
+}

@@ -25,7 +25,7 @@ TEST_CASE("empty source produces one EOF", "[spec]"){
 }
 
 
-TEST_CASE("whitespace is skipped and does not create tokens", "[spec][!mayfail]"){
+TEST_CASE("whitespace is skipped and does not create tokens", "[spec]"){
     auto r = test::lex("   \t\n\r\n  int");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -34,7 +34,7 @@ TEST_CASE("whitespace is skipped and does not create tokens", "[spec][!mayfail]"
 }
 
 
-TEST_CASE("line comment is skipped", "[spec][!mayfail]"){
+TEST_CASE("line comment is skipped", "[spec]"){
     auto r = test::lex("// comment\nint");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -42,7 +42,7 @@ TEST_CASE("line comment is skipped", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("leading BOM is skipped", "[spec][!mayfail]"){
+TEST_CASE("leading BOM is skipped", "[spec]"){
     const std::string source = "\xEF\xBB\xBFint";
 
     auto r = test::lex(source);
@@ -52,7 +52,7 @@ TEST_CASE("leading BOM is skipped", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("CRLF advances one line", "[spec][!mayfail]"){
+TEST_CASE("CRLF advances one line", "[spec]"){
     auto r = test::lex("int\r\nint");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -64,7 +64,7 @@ TEST_CASE("CRLF advances one line", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("tab occupies one column", "[spec][!mayfail]"){
+TEST_CASE("tab occupies one column", "[spec]"){
     auto r = test::lex("\tint");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -75,7 +75,7 @@ TEST_CASE("tab occupies one column", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("cyrillic identifier character occupies one column", "[spec][!mayfail]"){
+TEST_CASE("cyrillic identifier character occupies one column", "[spec]"){
     auto r = test::lex("Яint");
 
     REQUIRE(r.error.has_value());
@@ -85,7 +85,7 @@ TEST_CASE("cyrillic identifier character occupies one column", "[spec][!mayfail]
 }
 
 
-TEST_CASE("integer followed by identifier is invalid", "[spec][!mayfail]"){
+TEST_CASE("integer followed by identifier is invalid", "[spec]"){
     auto r = test::lex("12abc");
 
     REQUIRE(r.error.has_value());
@@ -95,7 +95,7 @@ TEST_CASE("integer followed by identifier is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("integer token keeps source lexeme", "[spec][!mayfail]"){
+TEST_CASE("integer token keeps source lexeme", "[spec]"){
     auto r = test::lex("123");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -107,7 +107,7 @@ TEST_CASE("integer token keeps source lexeme", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("identifier is recognized", "[spec][!mayfail]"){
+TEST_CASE("identifier is recognized", "[spec]"){
     auto r = test::lex("count");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -119,7 +119,7 @@ TEST_CASE("identifier is recognized", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("keywords have dedicated token kinds", "[spec][!mayfail]"){
+TEST_CASE("keywords have dedicated token kinds", "[spec]"){
     auto r = test::lex("class fn int bool char vector void");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -136,7 +136,7 @@ TEST_CASE("keywords have dedicated token kinds", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("longest punctuation is selected", "[spec][!mayfail]"){
+TEST_CASE("longest punctuation is selected", "[spec]"){
     auto r = test::lex("-> == != <= >= && ||");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -153,7 +153,7 @@ TEST_CASE("longest punctuation is selected", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("single ampersand is unexpected", "[spec][!mayfail]"){
+TEST_CASE("single ampersand is unexpected", "[spec]"){
     auto r = test::lex("&");
 
     REQUIRE(r.error.has_value());
@@ -161,7 +161,7 @@ TEST_CASE("single ampersand is unexpected", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("two minus signs remain separate tokens", "[spec][!mayfail]"){
+TEST_CASE("two minus signs remain separate tokens", "[spec]"){
     auto r = test::lex("1--2");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -175,7 +175,7 @@ TEST_CASE("two minus signs remain separate tokens", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("char literal decodes ASCII value", "[spec][!mayfail]"){
+TEST_CASE("char literal decodes ASCII value", "[spec]"){
     auto r = test::lex("'A'");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -186,7 +186,7 @@ TEST_CASE("char literal decodes ASCII value", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("multi-character char literal is invalid", "[spec][!mayfail]"){
+TEST_CASE("multi-character char literal is invalid", "[spec]"){
     auto r = test::lex("'ab'");
 
     REQUIRE(r.error.has_value());
@@ -194,7 +194,7 @@ TEST_CASE("multi-character char literal is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("non-ASCII char literal is invalid", "[spec][!mayfail]"){
+TEST_CASE("non-ASCII char literal is invalid", "[spec]"){
     auto r = test::lex("'Я'");
 
     REQUIRE(r.error.has_value());
@@ -202,7 +202,7 @@ TEST_CASE("non-ASCII char literal is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("non-printable ASCII char requires escape", "[spec][!mayfail]"){
+TEST_CASE("non-printable ASCII char requires escape", "[spec]"){
     auto r = test::lex("'\x7F'");
 
     REQUIRE(r.error.has_value());
@@ -210,7 +210,7 @@ TEST_CASE("non-printable ASCII char requires escape", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("unknown escape is invalid", "[spec][!mayfail]"){
+TEST_CASE("unknown escape is invalid", "[spec]"){
     auto r = test::lex("'\\q'");
 
     REQUIRE(r.error.has_value());
@@ -218,7 +218,7 @@ TEST_CASE("unknown escape is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("incomplete hex escape is invalid", "[spec][!mayfail]"){
+TEST_CASE("incomplete hex escape is invalid", "[spec]"){
     auto r = test::lex("'\\x7'");
 
     REQUIRE(r.error.has_value());
@@ -226,7 +226,7 @@ TEST_CASE("incomplete hex escape is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("hex escape above ASCII range is invalid", "[spec][!mayfail]"){
+TEST_CASE("hex escape above ASCII range is invalid", "[spec]"){
     auto r = test::lex("'\\x80'");
 
     REQUIRE(r.error.has_value());
@@ -234,7 +234,7 @@ TEST_CASE("hex escape above ASCII range is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("unterminated text literal is invalid", "[spec][!mayfail]"){
+TEST_CASE("unterminated text literal is invalid", "[spec]"){
     auto r = test::lex("\"abc");
 
     REQUIRE(r.error.has_value());
@@ -242,7 +242,7 @@ TEST_CASE("unterminated text literal is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("physical newline inside text literal is invalid", "[spec][!mayfail]"){
+TEST_CASE("physical newline inside text literal is invalid", "[spec]"){
     auto r = test::lex("\"a\nb\"");
 
     REQUIRE(r.error.has_value());
@@ -250,7 +250,7 @@ TEST_CASE("physical newline inside text literal is invalid", "[spec][!mayfail]")
 }
 
 
-TEST_CASE("text literal decodes escapes", "[spec][!mayfail]"){
+TEST_CASE("text literal decodes escapes", "[spec]"){
     auto r = test::lex("\"a\\n\\t\\\"\\\\\"");
 
     REQUIRE_FALSE(r.error.has_value());
@@ -261,7 +261,7 @@ TEST_CASE("text literal decodes escapes", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("text literal with cyrillic is invalid", "[spec][!mayfail]"){
+TEST_CASE("text literal with cyrillic is invalid", "[spec]"){
     auto r = test::lex("\"Привет\"");
 
     REQUIRE(r.error.has_value());
@@ -269,7 +269,7 @@ TEST_CASE("text literal with cyrillic is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("BOM outside file start is invalid", "[spec][!mayfail]"){
+TEST_CASE("BOM outside file start is invalid", "[spec]"){
     const std::string source = "int\xEF\xBB\xBF";
 
     auto r = test::lex(source);
@@ -279,7 +279,7 @@ TEST_CASE("BOM outside file start is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("bare carriage return is invalid", "[spec][!mayfail]"){
+TEST_CASE("bare carriage return is invalid", "[spec]"){
     auto r = test::lex("int\rint");
 
     REQUIRE(r.error.has_value());
@@ -287,7 +287,7 @@ TEST_CASE("bare carriage return is invalid", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("invalid UTF-8 byte is reported", "[spec][!mayfail]"){
+TEST_CASE("invalid UTF-8 byte is reported", "[spec]"){
     const std::string source = "// \xFF\nint";
 
     auto r = test::lex(source);
@@ -297,7 +297,7 @@ TEST_CASE("invalid UTF-8 byte is reported", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("error preserves tokens before failure and omits EOF", "[spec][!mayfail]"){
+TEST_CASE("error preserves tokens before failure and omits EOF", "[spec]"){
     auto r = test::lex("int 12abc");
 
     REQUIRE(r.error.has_value());
@@ -311,7 +311,7 @@ TEST_CASE("error preserves tokens before failure and omits EOF", "[spec][!mayfai
 }
 
 
-TEST_CASE("repeated tokenization returns the same result", "[spec][!mayfail]"){
+TEST_CASE("repeated tokenization returns the same result", "[spec]"){
     egg::Lexer lexer("int x = 1;", "test.egg");
 
     auto first = lexer.tokenize();
@@ -324,7 +324,7 @@ TEST_CASE("repeated tokenization returns the same result", "[spec][!mayfail]"){
 }
 
 
-TEST_CASE("small program is tokenized", "[spec][!mayfail]"){
+TEST_CASE("small program is tokenized", "[spec]"){
     const std::string source =
         "// Программа\n"
         "int x = 1;\n"
