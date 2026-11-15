@@ -3,7 +3,7 @@
 
 using egg::TokenKind;
 
-TEST_CASE("trivia: заготовка", "[trivia]") {
+TEST_CASE("trivia placeholder", "[trivia]") {
     auto r = test::lex("");
     REQUIRE_FALSE(r.error.has_value());
     REQUIRE(test::kinds(r) == std::vector<TokenKind>{TokenKind::EndOfFile});
