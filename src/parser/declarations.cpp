@@ -81,3 +81,12 @@ IDENT — объявление; IDENT ( — выражение; vector<T> [ — 
 // }
 
 } // namespace egg::detail
+
+namespace egg::detail {
+
+std::optional<ast::Declaration> Reader::parse_declaration() {
+    unexpected({TokenKind::KwClass, TokenKind::KwFn});
+    return std::nullopt;
+}
+
+} // namespace egg::detail

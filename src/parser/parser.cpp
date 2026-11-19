@@ -1,21 +1,15 @@
 #include "egg/parser.h"
 #include "reader.h"
 
+#include <utility>
+
 namespace egg {
 
-// Сохранить переданные токены и имя в tokens_ и source_name_ через перемещение.
-// Только владение данными: не запускать разбор или проверку EOF.
-// Добавить список инициализации и <utility> при реализации.
-// Parser::Parser(std::vector<Token> tokens, std::string source_name)
-// {
-//     TODO: реализовать.
-// }
+Parser::Parser(std::vector<Token> tokens, std::string source_name)
+    : tokens_(std::move(tokens)), source_name_(std::move(source_name)) {}
 
-// Создать новый detail::Reader(tokens_, source_name_) и вернуть run().
-// Каждый вызов имеет независимое состояние; сам Parser не изменяется.
-// ParseResult Parser::parse() const
-// {
-//     TODO: реализовать.
-// }
+ParseResult Parser::parse() const {
+    return detail::Reader(tokens_, source_name_).run();
+}
 
 } // namespace egg
