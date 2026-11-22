@@ -3,7 +3,7 @@
 # ============================================================================
 
 cmake_minimum_required(VERSION 3.20)
-project(egg_lexer LANGUAGES CXX)
+project(egg LANGUAGES CXX)
 
 # ----------------------------------------------------------------------------
 # Базовые настройки языка
@@ -85,6 +85,38 @@ if(EGG_SANITIZE AND NOT MSVC)
   target_link_options(egg_lexer PUBLIC ${EGG_SANITIZER_FLAGS})
 endif()
 
+
+# ----------------------------------------------------------------------------
+# egg_parser — инфраструктура синтаксического анализатора
+# ----------------------------------------------------------------------------
+
+add_library(egg_parser
+  src/parser/parser.cpp
+  src/parser/core.cpp
+  src/parser/declarations.cpp
+  src/parser/statements.cpp
+  src/parser/expressions.cpp
+)
+target_include_directories(egg_parser PUBLIC include)
+target_link_libraries(egg_parser PUBLIC egg_lexer)
+
+if(MSVC)
+  target_compile_options(egg_parser PRIVATE /W4 /utf-8)
+  if(EGG_WERROR)
+    target_compile_options(egg_parser PRIVATE /WX)
+  endif()
+else()
+  target_compile_options(egg_parser PRIVATE -Wall -Wextra -Wpedantic)
+  if(EGG_WERROR)
+    target_compile_options(egg_parser PRIVATE -Werror)
+  endif()
+endif()
+
+if(EGG_SANITIZE AND NOT MSVC)
+  target_compile_options(egg_parser PRIVATE ${EGG_SANITIZER_FLAGS})
+  target_link_options(egg_parser PUBLIC ${EGG_SANITIZER_FLAGS})
+endif()
+
 # ----------------------------------------------------------------------------
 # Тесты. Тесты собираются только если включена поддержка CTest
 # ----------------------------------------------------------------------------
@@ -128,4 +160,24 @@ if(BUILD_TESTING)
   list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
   include(Catch)
   catch_discover_tests(lexer_tests)
+endif()
+
+
+if(BUILD_TESTING)
+  add_executable(parser_tests
+    tests/test_parser_core.cpp
+    tests/test_parser_declarations.cpp
+    tests/test_parser_statements.cpp
+    tests/test_parser_expressions.cpp
+    tests/test_parser_spec.cpp
+  )
+  target_link_libraries(parser_tests PRIVATE
+    egg_parser
+    egg_lexer
+    Catch2::Catch2WithMain
+  )
+  if(MSVC)
+    target_compile_options(parser_tests PRIVATE /utf-8)
+  endif()
+  catch_discover_tests(parser_tests)
 endif()

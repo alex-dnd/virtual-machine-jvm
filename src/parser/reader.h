@@ -192,6 +192,7 @@ private:
     const std::string &name_;
     std::size_t pos_ = 0;
     std::optional<ParseDiagnostic> error_;
+    std::vector<ast::Declaration> declarations_;
 };
 
 } // namespace egg::detail
