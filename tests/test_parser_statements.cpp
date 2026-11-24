@@ -31,7 +31,7 @@ const egg::ast::Block& function_body(const egg::ParseResult& result) {
 
 } // namespace
 
-TEST_CASE("Пустые и вложенные блоки", "[parser][statements]") {
+TEST_CASE("Пустые и вложенные блоки", "[parser][statements][.]") {
     auto result = parse_source("fn main() { {} { {} } }");
     const auto& body = function_body(result);
 
@@ -51,7 +51,7 @@ TEST_CASE("Пустые и вложенные блоки", "[parser][statements]
         nested->statements[0]->value));
 }
 
-TEST_CASE("Объявление переменных", "[parser][statements]") {
+TEST_CASE("Объявление переменных", "[parser][statements][.]") {
     auto result = parse_source(
         "fn main() { int x; int y = 42; }");
     const auto& body = function_body(result);
@@ -72,7 +72,7 @@ TEST_CASE("Объявление переменных", "[parser][statements]") {
     CHECK(y->initializer != nullptr);
 }
 
-TEST_CASE("Цепочка if else if else", "[parser][statements]") {
+TEST_CASE("Цепочка if else if else", "[parser][statements][.]") {
     auto result = parse_source(
         "fn main() { if (x) {} else if (y) {} else {} }");
     const auto& body = function_body(result);
@@ -93,7 +93,7 @@ TEST_CASE("Цепочка if else if else", "[parser][statements]") {
         (*second)->else_branch));
 }
 
-TEST_CASE("If без else", "[parser][statements]") {
+TEST_CASE("If без else", "[parser][statements][.]") {
     auto result = parse_source("fn main() { if (x) {} }");
     const auto& body = function_body(result);
 
@@ -105,7 +105,7 @@ TEST_CASE("If без else", "[parser][statements]") {
         branch->else_branch));
 }
 
-TEST_CASE("Циклы и return", "[parser][statements]") {
+TEST_CASE("Циклы и return", "[parser][statements][.]") {
     auto result = parse_source(
         "fn main() { while (x) { break; continue; } return; return 1; }");
     const auto& body = function_body(result);
@@ -134,7 +134,7 @@ TEST_CASE("Циклы и return", "[parser][statements]") {
     CHECK(r2->value != nullptr);
 }
 
-TEST_CASE("Присваивания и выражения", "[parser][statements]") {
+TEST_CASE("Присваивания и выражения", "[parser][statements][.]") {
     const std::string source =
         "fn main() { a.b = 1; xs[0] = 1; 1 = 2; break; foo(); }";
 
@@ -173,7 +173,7 @@ TEST_CASE("Присваивания и выражения", "[parser][statements
         body.statements[4]->value));
 }
 
-TEST_CASE("Ошибки операторов", "[parser][statements]") {
+TEST_CASE("Ошибки операторов", "[parser][statements][.]") {
     const std::vector<std::string> invalid = {
         "fn main() { if (x) y = 1; }",
         "fn main() { while (x) break; }",
@@ -193,7 +193,7 @@ TEST_CASE("Ошибки операторов", "[parser][statements]") {
     }
 }
 
-TEST_CASE("Точные диапазоны ошибок", "[parser][statements]") {
+TEST_CASE("Точные диапазоны ошибок", "[parser][statements][.]") {
     auto eof = parse_source("fn main() {");
     const auto* eof_error =
         std::get_if<egg::ParseDiagnostic>(&eof);
