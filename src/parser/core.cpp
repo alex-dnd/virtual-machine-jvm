@@ -1,117 +1,111 @@
 #include "reader.h"
 
+#include <utility>
+
 namespace egg::detail {
 
-// Шаблоны определений: раскомментировать по мере реализации.
-// Описания контрактов также приведены в reader.h.
+Reader::Reader(const std::vector<Token> &tokens, const std::string &source_name)
+    : tokens_(tokens), name_(source_name) {}
 
-/*
-Сохранить ссылки на поток и имя. pos_ = 0, error_ пуст. Не читать токены до проверки потока.
-Инициализировать tokens_ и name_ списком инициализации.
-*/
-// Reader::Reader(const std::vector<Token> &tokens, const std::string &source_name)
-// {
-//     TODO: реализовать.
-// }
+ParseResult Reader::run() {
+    if (!validate_stream())
+        return *error_;
 
-/*
-Проверить поток через validate_stream(); при ошибке вернуть диагностику. Затем разбирать
-parse_declaration() до EOF, сохраняя исходный порядок. Собрать Program с именем и диапазоном от
-первого токена до EOF. Один EOF даёт пустую программу. При любой ошибке вернуть только первую
-диагностику, без частичного AST. Reader используется для одного прохода.
-*/
-// ParseResult Reader::run()
-// {
-//     TODO: реализовать.
-// }
+    const auto begin = peek().range.begin;
+    while (!at(TokenKind::EndOfFile)) {
+        auto declaration = parse_declaration();
+        if (!declaration)
+            return *error_;
+        // Declarations are intentionally parsed by the declarations task.
+        // Keep the successful result in source order.
+        declarations_.push_back(std::move(*declaration));
+    }
 
-/*
-До любого peek() проверить ровно один EOF в конце. При преждевременном EOF указать первый такой
-токен; без EOF — нулевой диапазон после последнего токена, actual = nullopt; пустой поток — позиция
-{0, 1, 1}. Записать InvalidTokenStream. Лексические значения не перепроверять.
-*/
-// bool Reader::validate_stream()
-// {
-//     TODO: реализовать.
-// }
+    return ast::Program{name_, SourceRange{begin, peek().range.end},
+                        std::move(declarations_)};
+}
 
-/*
-Вернуть токен на расстоянии ahead; за концом возвращать конечный EOF. Не менять позицию. Вызывается
-только после успешной validate_stream(). Избежать переполнения pos_ + ahead.
-*/
-// const Token &Reader::peek(std::size_t ahead) const
-// {
-//     TODO: реализовать.
-// }
+bool Reader::validate_stream() {
+    const SourcePosition origin{0, 1, 1};
+    if (tokens_.empty()) {
+        return fail(ParseErrorCode::InvalidTokenStream, {origin, origin},
+                    std::nullopt, {}, "Token stream is empty");
+    }
 
-/*
-Проверить категорию текущего токена, ничего не потребляя.
-*/
-// bool Reader::at(TokenKind kind) const
-// {
-//     TODO: реализовать.
-// }
+    for (std::size_t i = 0; i < tokens_.size(); ++i) {
+        if (tokens_[i].kind == TokenKind::EndOfFile && i + 1 != tokens_.size()) {
+            return fail(ParseErrorCode::InvalidTokenStream, tokens_[i].range,
+                        TokenKind::EndOfFile, {}, "EOF appears before the end of the token stream");
+        }
+    }
 
-/*
-Вернуть текущий токен и перейти к следующему. На EOF оставаться на месте. Ссылки действуют до
-уничтожения входного потока.
-*/
-// const Token &Reader::advance()
-// {
-//     TODO: реализовать.
-// }
+    if (tokens_.back().kind != TokenKind::EndOfFile) {
+        const auto end = tokens_.back().range.end;
+        return fail(ParseErrorCode::InvalidTokenStream, {end, end},
+                    std::nullopt, {}, "Token stream has no EOF");
+    }
+    return true;
+}
 
-/*
-При совпадении потребить токен и вернуть true, иначе вернуть false без диагностики и продвижения.
-*/
-// bool Reader::match(TokenKind kind)
-// {
-//     TODO: реализовать.
-// }
+const Token &Reader::peek(std::size_t ahead) const {
+    const std::size_t remaining = tokens_.size() - pos_;
+    if (ahead >= remaining)
+        return tokens_.back();
+    return tokens_[pos_ + ahead];
+}
 
-/*
-При совпадении потребить токен и вернуть true. Иначе вызвать unexpected({kind}) и вернуть false.
-*/
-// bool Reader::expect(TokenKind kind)
-// {
-//     TODO: реализовать.
-// }
+bool Reader::at(TokenKind kind) const { return peek().kind == kind; }
 
-/*
-Построить диапазон от begin до конца последнего потреблённого токена. Если ничего не потреблено,
-вернуть {begin, begin}. EOF не потребляется. Program получает конец отдельно из EOF.
-*/
-// SourceRange Reader::range_from(SourcePosition begin) const
-// {
-//     TODO: реализовать.
-// }
+const Token &Reader::advance() {
+    const Token &token = peek();
+    if (token.kind != TokenKind::EndOfFile)
+        ++pos_;
+    return token;
+}
 
-/*
-Сохранить только первую диагностику, добавив name_. Всегда вернуть false. Не печатать сообщения и не
-бросать исключения для ошибок синтаксиса.
-*/
-// bool Reader::fail(ParseErrorCode code, SourceRange range, std::optional<TokenKind> actual,
-// std::vector<TokenKind> expected, std::string message)
-// {
-//     TODO: реализовать.
-// }
+bool Reader::match(TokenKind kind) {
+    if (!at(kind))
+        return false;
+    advance();
+    return true;
+}
 
-/*
-Вызвать fail для текущего токена: UnexpectedEnd на EOF, иначе UnexpectedToken. Передать его
-диапазон, категорию и ожидаемые токены. Всегда вернуть false.
-*/
-// bool Reader::unexpected(std::vector<TokenKind> expected)
-// {
-//     TODO: реализовать.
-// }
+bool Reader::expect(TokenKind kind) {
+    if (match(kind))
+        return true;
+    return unexpected({kind});
+}
 
-/*
-Потребить Identifier, скопировать имя и диапазон. На другом токене записать unexpected({Identifier})
-и вернуть nullopt.
-*/
-// std::optional<ast::Identifier> Reader::parse_identifier()
-// {
-//     TODO: реализовать.
-// }
+SourceRange Reader::range_from(SourcePosition begin) const {
+    if (pos_ == 0)
+        return {begin, begin};
+    return {begin, tokens_[pos_ - 1].range.end};
+}
+
+bool Reader::fail(ParseErrorCode code, SourceRange range,
+                  std::optional<TokenKind> actual,
+                  std::vector<TokenKind> expected, std::string message) {
+    if (!error_)
+        error_ = ParseDiagnostic{code, name_, range, std::move(message),
+                                 actual, std::move(expected)};
+    return false;
+}
+
+bool Reader::unexpected(std::vector<TokenKind> expected) {
+    const auto &token = peek();
+    const auto code = token.kind == TokenKind::EndOfFile
+        ? ParseErrorCode::UnexpectedEnd : ParseErrorCode::UnexpectedToken;
+    return fail(code, token.range, token.kind, std::move(expected),
+                "Unexpected token");
+}
+
+std::optional<ast::Identifier> Reader::parse_identifier() {
+    if (!at(TokenKind::Identifier)) {
+        unexpected({TokenKind::Identifier});
+        return std::nullopt;
+    }
+    const auto token = advance();
+    return ast::Identifier{token.range, token.lexeme};
+}
 
 } // namespace egg::detail

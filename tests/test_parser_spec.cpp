@@ -513,3 +513,4 @@ TEST_CASE("parser: repeated parse returns structurally equal result", "[parser][
     CHECK(first_program.source_name == second_program.source_name);
     CHECK(first_program.declarations.size() == second_program.declarations.size());
 }
+
